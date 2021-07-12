@@ -5,9 +5,9 @@ model_params:
 
 exp_params:
   dataset: celeba
-  data_path: "../../shared/Data/"
-  img_size: 64
-  batch_size: 144 # Better to have a square number
+  data_path: "data/"
+  img_size: 256
+  batch_size: 256 # Better to have a square number
   LR: 0.005
   weight_decay: 0.0
   scheduler_gamma: 0.95
