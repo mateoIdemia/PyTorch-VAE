@@ -7,8 +7,8 @@ from utils import data_loader
 import pytorch_lightning as pl
 from torchvision import transforms
 import torchvision.utils as vutils
-from torchvision.datasets import CelebA
 from torch.utils.data import DataLoader
+from lasink_simulation_dataset import LasinkSimulation
 
 
 class VAEXperiment(pl.LightningModule):
@@ -67,22 +67,22 @@ class VAEXperiment(pl.LightningModule):
         test_input, test_label = next(iter(self.sample_dataloader))
         test_input = test_input.to(self.curr_device)
         test_label = test_label.to(self.curr_device)
-        recons = self.model.generate(test_input, labels = test_label)
+        recons = self.model.generate(test_input[:36], labels = test_label)
         vutils.save_image(recons.data,
                           f"{self.logger.save_dir}{self.logger.name}/version_{self.logger.version}/"
                           f"recons_{self.logger.name}_{self.current_epoch}.png",
                           normalize=True,
-                          nrow=12)
+                          nrow=6)
 
         try:
-            samples = self.model.sample(144,
+            samples = self.model.sample(36,
                                         self.curr_device,
                                         labels = test_label)
             vutils.save_image(samples.cpu().data,
                               f"{self.logger.save_dir}{self.logger.name}/version_{self.logger.version}/"
                               f"{self.logger.name}_{self.current_epoch}.png",
                               normalize=True,
-                              nrow=12)
+                              nrow=6)
         except:
             pass
 
@@ -131,10 +131,7 @@ class VAEXperiment(pl.LightningModule):
         transform = self.data_transforms()
 
         if self.params['dataset'] == 'celeba':
-            dataset = CelebA(root = self.params['data_path'],
-                             split = "train",
-                             transform=transform,
-                             download=False)
+            dataset = LasinkSimulation(self.params['data_path'], transform)
         else:
             raise ValueError('Undefined dataset type')
 
@@ -149,11 +146,8 @@ class VAEXperiment(pl.LightningModule):
         transform = self.data_transforms()
 
         if self.params['dataset'] == 'celeba':
-            self.sample_dataloader =  DataLoader(CelebA(root = self.params['data_path'],
-                                                        split = "test",
-                                                        transform=transform,
-                                                        download=False),
-                                                 batch_size= 144,
+            self.sample_dataloader =  DataLoader(LasinkSimulation(self.params['data_path'], transform),
+                                                 batch_size= self.params['batch_size'],
                                                  shuffle = True,
                                                  drop_last=True)
             self.num_val_imgs = len(self.sample_dataloader)
