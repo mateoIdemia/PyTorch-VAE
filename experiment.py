@@ -40,7 +40,7 @@ class VAEXperiment(pl.LightningModule):
                                               optimizer_idx=optimizer_idx,
                                               batch_idx = batch_idx)
 
-        self.logger.experiment.log({key: val.item() for key, val in train_loss.items()})
+        self.log('train_loss', {key: val.item() for key, val in train_loss.items()})
 
         return train_loss
 
@@ -73,12 +73,6 @@ class VAEXperiment(pl.LightningModule):
                           f"recons_{self.logger.name}_{self.current_epoch}.png",
                           normalize=True,
                           nrow=12)
-
-        # vutils.save_image(test_input.data,
-        #                   f"{self.logger.save_dir}{self.logger.name}/version_{self.logger.version}/"
-        #                   f"real_img_{self.logger.name}_{self.current_epoch}.png",
-        #                   normalize=True,
-        #                   nrow=12)
 
         try:
             samples = self.model.sample(144,
@@ -175,11 +169,10 @@ class VAEXperiment(pl.LightningModule):
 
         if self.params['dataset'] == 'celeba':
             transform = transforms.Compose([transforms.RandomHorizontalFlip(),
-                                            transforms.CenterCrop(148),
+                                            transforms.CenterCrop(512),
                                             transforms.Resize(self.params['img_size']),
                                             transforms.ToTensor(),
                                             SetRange])
         else:
             raise ValueError('Undefined dataset type')
         return transform
-
