@@ -131,7 +131,7 @@ class VAEXperiment(pl.LightningModule):
         transform = self.data_transforms()
 
         if self.params['dataset'] == 'celeba':
-            dataset = LasinkSimulation(self.params['data_path'], train=True, transform)
+            dataset = LasinkSimulation(self.params['data_path'], train=True, transform=transform)
         else:
             raise ValueError('Undefined dataset type')
 
@@ -146,7 +146,7 @@ class VAEXperiment(pl.LightningModule):
         transform = self.data_transforms()
 
         if self.params['dataset'] == 'celeba':
-            self.sample_dataloader =  DataLoader(LasinkSimulation(self.params['data_path'], train=False, transform),
+            self.sample_dataloader =  DataLoader(LasinkSimulation(self.params['data_path'], train=False, transform=transform),
                                                  batch_size= self.params['batch_size'],
                                                  shuffle = False,
                                                  drop_last=True)
