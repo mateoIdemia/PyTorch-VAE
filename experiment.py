@@ -9,6 +9,7 @@ from torchvision import transforms
 import torchvision.utils as vutils
 from torch.utils.data import DataLoader
 from lasink_simulation_dataset import LasinkSimulation
+import torchvision
 
 
 class VAEXperiment(pl.LightningModule):
@@ -40,7 +41,9 @@ class VAEXperiment(pl.LightningModule):
                                               optimizer_idx=optimizer_idx,
                                               batch_idx = batch_idx)
 
-        self.log('train_loss', {key: val.item() for key, val in train_loss.items()})
+        for key, val in train_loss.items():
+        	self.log('train_loss_'+str(key), val, on_step=True, on_epoch=True)
+
 
         return train_loss
 
@@ -54,35 +57,32 @@ class VAEXperiment(pl.LightningModule):
                                             optimizer_idx = optimizer_idx,
                                             batch_idx = batch_idx)
 
+        for key, val in val_loss.items():
+        	self.log('val_loss_'+str(key), val, on_step=True, on_epoch=True)
+
         return val_loss
 
-    def validation_end(self, outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        tensorboard_logs = {'avg_val_loss': avg_loss}
-        self.sample_images()
-        return {'val_loss': avg_loss, 'log': tensorboard_logs}
 
-    def sample_images(self):
+    def on_validation_epoch_end(self):
         # Get sample reconstruction image
         test_input, test_label = next(iter(self.sample_dataloader))
         test_input = test_input.to(self.curr_device)
         test_label = test_label.to(self.curr_device)
-        recons = self.model.generate(test_input[:36], labels = test_label)
-        vutils.save_image(recons.data,
-                          f"{self.logger.save_dir}{self.logger.name}/version_{self.logger.version}/"
-                          f"recons_{self.logger.name}_{self.current_epoch}.png",
-                          normalize=True,
-                          nrow=6)
+        self.model = self.model.eval()
+        recons = self.model.generate(test_input[:4], labels = test_label)
+        grid = torchvision.utils.make_grid(recons.data.cpu().data)
+        name = f"im_recons_{self.current_epoch}.png"
+        self.logger.experiment.add_image(name, grid, 0)
 
         try:
-            samples = self.model.sample(36,
+            samples = self.model.sample(4,
                                         self.curr_device,
                                         labels = test_label)
-            vutils.save_image(samples.cpu().data,
-                              f"{self.logger.save_dir}{self.logger.name}/version_{self.logger.version}/"
-                              f"{self.logger.name}_{self.current_epoch}.png",
-                              normalize=True,
-                              nrow=6)
+
+            grid = torchvision.utils.make_grid(samples.cpu().data)
+            name = f"im_sample_{self.current_epoch}.png"
+            self.logger.experiment.add_image(name, grid, 0)
+      
         except:
             pass
 
