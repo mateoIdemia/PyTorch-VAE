@@ -1,9 +1,12 @@
 import glob
-from PIL import Image
+from PIL import Image, ImageFile
 from torch.utils.data import Dataset
 import torch
 import random
 import numpy as np
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 
 class LasinkSimulation(Dataset):
     def __init__(self, folder, transform=None):
