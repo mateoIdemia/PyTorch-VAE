@@ -17,7 +17,7 @@ class LasinkSimulation(Dataset):
         if train:
             self.imgs = self.imgs[:int(len(self.imgs)*0.85)]
         else:
-            self.imgs = self.imgs[int(len(self.imgs)*0.85:)]
+            self.imgs = self.imgs[int(len(self.imgs)*0.85):]
 
 
     def __getitem__(self, index):
